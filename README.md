@@ -1,6 +1,6 @@
 # arbitrage with flashloan
 
-An application invokes a flashloan in dYdX and a monitoring tool in Node.js.
+A sample  application invokes a flashloan in dYdX and a monitoring tool in Node.js.
  
 ## software version
 

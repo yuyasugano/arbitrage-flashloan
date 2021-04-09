@@ -16,7 +16,13 @@ contract Flashloan is ICallee, DydxFlashloanBase {
         uint256 repayAmount;
     }
 
-    address beneficiary;
+    address private beneficiary;
+
+    event NewSwap(
+        address source,
+        address destination,
+        uint256 amount
+    );
 
     event NewArbitrage(
         uint256 settlement,
@@ -31,6 +37,7 @@ contract Flashloan is ICallee, DydxFlashloanBase {
     }
 
     address constant OneSplitAddress = 0xC586BeF4a0992C495Cf22e1aeEE4E446CECDee0E;
+    address constant WethAddress = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     // https://money-legos.studydefi.com/#/dydx?id=flashloan-logic-solidity
     function _swap(
@@ -73,13 +80,18 @@ contract Flashloan is ICallee, DydxFlashloanBase {
     ) public 
     {
         Arbitrage memory ar = abi.decode(data, (Arbitrage));
-        uint256 balanceLoanedToken = IERC20(ar.source).balanceOf(address(this));
+        uint256 balanceLoanedToken = IERC20(ar.source).balanceOf(address(this));        
 
         // TODO: Encode your logic here
         // E.g. arbitrage, liquidate accounts, etc
         // revert("Hello, you haven't encoded your logic");
+        IERC20(ar.source).approve(OneSplitAddress, balanceLoanedToken);
         uint256 returnAmount = _swap(ar.source, ar.destination, balanceLoanedToken);
+        emit NewSwap(ar.source, ar.destination, returnAmount);
+
+        IERC20(ar.destination).approve(OneSplitAddress, returnAmount);
         uint256 settleAmount = _swap(ar.destination, ar.source, returnAmount);
+        emit NewSwap(ar.destination, ar.source, settleAmount);
 
         // Note that you can ignore the line below
         // if your dydx account (this contract in this case)

@@ -8,5 +8,6 @@
 .env
 index.js
 index.js.*
+index.test.*
 node_modules/*
 build/contracts/*
